@@ -65,13 +65,16 @@ Future downloadSchedule(AutoRefreshingAuthClient client, String url) async {
         var live = showDetails.querySelector('.live') != null;
         var premiere = showDetails.querySelector('.premiere') != null;
         var showDuration = showDetails.querySelector('.showDuration').text;
-        var hourMinuteRegexp = new RegExp(r'((\d+) Std\. )?(\d+) Min\.');
+        var hourMinuteRegexp = new RegExp(r'((\d+) Tage )?((\d+) Std\. )?(\d+) Min\.');
         var matches = hourMinuteRegexp.allMatches(showDuration);
         var duration = 1;
         matches.forEach((match) {
-          duration = int.parse(match.group(3));
+          duration = int.parse(match.group(5));
+          if (match.group(4) != null) {
+            duration += 60 * int.parse(match.group(4));
+          }
           if (match.group(2) != null) {
-            duration += 60 * int.parse(match.group(2));
+            duration += 24 * 60 * int.parse(match.group(2));
           }
         });
         var hour = int.parse(time.split(':')[0]);
