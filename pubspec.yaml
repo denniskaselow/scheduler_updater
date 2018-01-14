@@ -6,6 +6,7 @@ environment:
   sdk: '>=1.20.1 <2.0.0'
 
 dependencies:
-  googleapis_auth: ^0.2.3+5
+  googleapis_auth:
+    git: https://github.com/dart-lang/googleapis_auth.git
   scheduler_base:
     git: https://github.com/denniskaselow/scheduler_base.git
