@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as parser;
-import 'package:dson/dson.dart' as dson;
 import 'package:scheduler_base/scheduler_base.dart';
 import 'package:googleapis_auth/auth_io.dart';
 
@@ -26,7 +25,7 @@ const Map<String, int> months = const {
 main(List<String> args) async {
   var content = await new File('serviceaccount.json').readAsString();
   var accountCredentials =
-      new ServiceAccountCredentials.fromJson(JSON.decode(content));
+      new ServiceAccountCredentials.fromJson(json.decode(content));
   var client = await clientViaServiceAccount(accountCredentials, [
     'https://www.googleapis.com/auth/firebase.database',
     'https://www.googleapis.com/auth/userinfo.email'
@@ -65,7 +64,8 @@ Future downloadSchedule(AutoRefreshingAuthClient client, String url) async {
         var live = showDetails.querySelector('.live') != null;
         var premiere = showDetails.querySelector('.premiere') != null;
         var showDuration = showDetails.querySelector('.showDuration').text;
-        var hourMinuteRegexp = new RegExp(r'((\d+) Tage )?((\d+) Std\. )?(\d+) Min\.');
+        var hourMinuteRegexp =
+            new RegExp(r'((\d+) Tage )?((\d+) Std\. )?(\d+) Min\.');
         var matches = hourMinuteRegexp.allMatches(showDuration);
         var duration = 1;
         matches.forEach((match) {
@@ -106,7 +106,20 @@ Future downloadSchedule(AutoRefreshingAuthClient client, String url) async {
       var path =
           'rbtv/$year/${month.toString().padLeft(2, '0')}/${day.toString().padLeft(2, '0')}.json';
       var url = 'https://scheduler-40abf.firebaseio.com/$path';
-      await client.put(url, body: dson.toJson(shows));
+      final encodedShows = json.encode(shows, toEncodable: (timeSlot) {
+        if (timeSlot is RbtvTimeSlot) {
+          return {
+            'name': timeSlot.name,
+            'description': timeSlot.description,
+            'start': timeSlot.start.toIso8601String(),
+            'end': timeSlot.end.toIso8601String(),
+            'height': timeSlot.height,
+            'live': timeSlot.live,
+            'premiere': timeSlot.premiere,
+          };
+        }
+      });
+      await client.put(url, body: encodedShows);
     });
   }
 }
