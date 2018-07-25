@@ -3,7 +3,7 @@ description: An updater for schedule data
 version: 0.0.1
 
 environment:
-  sdk: '>=2.0.0-dev <2.0.0'
+  sdk: '>=2.0.0-dev <3.0.0'
 
 dependencies:
   googleapis_auth: ^0.2.5

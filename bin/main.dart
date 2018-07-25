@@ -39,7 +39,7 @@ main(List<String> args) async {
 
 Future downloadSchedule(AutoRefreshingAuthClient client, String url) async {
   var response = await http.get(url);
-  if (response.statusCode == HttpStatus.OK) {
+  if (response.statusCode == HttpStatus.ok) {
     var content = response.body;
     var document = parser.parse(content);
 
