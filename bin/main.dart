@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:async';
 
 import 'package:http/http.dart' as http;
 import 'package:scheduler_base/scheduler_base.dart';
@@ -81,20 +80,7 @@ Future downloadSchedule(AutoRefreshingAuthClient client, String url) async {
         var path =
             'rbtv/$year/${month.toString().padLeft(2, '0')}/${day.toString().padLeft(2, '0')}.json';
         var url = 'https://scheduler-40abf.firebaseio.com/$path';
-        final encodedShows = json.encode(shows, toEncodable: (timeSlot) {
-          if (timeSlot is RbtvTimeSlot) {
-            return {
-              'name': timeSlot.name,
-              'description': timeSlot.description,
-              'start': timeSlot.start.toIso8601String(),
-              'end': timeSlot.end.toIso8601String(),
-              'height': timeSlot.height,
-              'live': timeSlot.live,
-              'premiere': timeSlot.premiere,
-            };
-          }
-          return null;
-        });
+        final encodedShows = json.encode(shows);
         await client.put(url, body: encodedShows);
       }
     });
