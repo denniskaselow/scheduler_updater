@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -21,28 +22,39 @@ const Map<String, int> months = const {
 };
 
 main(List<String> args) async {
-  var content = await new File('serviceaccount.json').readAsString();
-  var accountCredentials =
-      new ServiceAccountCredentials.fromJson(json.decode(content));
-  var client = await clientViaServiceAccount(accountCredentials, [
-    'https://www.googleapis.com/auth/firebase.database',
-    'https://www.googleapis.com/auth/userinfo.email'
-  ]);
+  runZoned(() async {
+    var content = await new File('serviceaccount.json').readAsString();
+    var accountCredentials =
+        new ServiceAccountCredentials.fromJson(json.decode(content));
+    var client = await clientViaServiceAccount(accountCredentials, [
+      'https://www.googleapis.com/auth/firebase.database',
+      'https://www.googleapis.com/auth/userinfo.email'
+    ]);
 
-  final now = new DateTime.now();
-  final sundayStart = now.subtract(Duration(
-      days: 3,
-      hours: now.hour,
-      minutes: now.minute,
-      seconds: now.second,
-      milliseconds: now.millisecond,
-      microseconds: now.microsecond));
-  final int start = sundayStart.millisecondsSinceEpoch ~/ 1000;
-  final int end =
-      sundayStart.add(Duration(days: 10)).millisecondsSinceEpoch ~/ 1000;
+    final now = new DateTime.now();
+    final firstDay = now.subtract(Duration(
+        days: 3,
+        hours: now.hour,
+        minutes: now.minute,
+        seconds: now.second,
+        milliseconds: now.millisecond,
+        microseconds: now.microsecond));
+    final int start = firstDay.millisecondsSinceEpoch ~/ 1000;
+    final int end =
+        firstDay.add(Duration(days: 10)).millisecondsSinceEpoch ~/ 1000;
 
-  await downloadSchedule(client,
-      'https://api.rocketbeans.tv/v1/schedule/normalized?startDay=$start&endDay=$end');
+    await downloadSchedule(client,
+        'https://api.rocketbeans.tv/v1/schedule/normalized?startDay=$start&endDay=$end');
+    File('okay.txt').openWrite()
+      ..write(DateTime.now())
+      ..close();
+  }).catchError((error, stacktrace) {
+    File('error.txt').openWrite()
+      ..write(DateTime.now())
+      ..write(error)
+      ..write(stacktrace)
+      ..close();
+  });
 }
 
 Future downloadSchedule(AutoRefreshingAuthClient client, String url) async {
@@ -59,7 +71,7 @@ Future downloadSchedule(AutoRefreshingAuthClient client, String url) async {
         scheduleShowsByDay[startTime.day].add(scheduleShow);
       });
     });
-    scheduleDays.skip(1).take(7).forEach((scheduleDay) async {
+    scheduleDays.skip(1).forEach((scheduleDay) async {
       final shows = <TimeSlot>[];
       final currentDay = DateTime.parse(scheduleDay['date']).toLocal();
       final year = currentDay.year;
